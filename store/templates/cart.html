@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}Корзина{% endblock %}
+{% block content %}
+<h1 class="text-3xl font-bold mb-6 text-primary">Ваша корзина</h1>
+
+<div class="bg-accent rounded-xl p-6 shadow-lg">
+  {% if items %}
+    <div class="space-y-4">
+      {% for it in items %}
+      <div class="flex flex-col md:flex-row justify-between items-center border-b border-gray-700 pb-4">
+        <div class="flex items-center gap-4 mb-3 md:mb-0 w-full md:w-auto">
+          {% if it.product and it.product.image %}
+            <img src="{{ it.product.image.url }}" class="w-24 h-24 rounded object-cover" alt="{{ it.product.title }}">
+          {% else %}
+            <div class="w-24 h-24 bg-gray-800 rounded flex items-center justify-center text-gray-400">Нет фото</div>
+          {% endif %}
+
+          <div>
+            {% if it.product %}
+              <div class="font-semibold text-lg">{{ it.product.title }}</div>
+              {% if it.product.category %}
+                <div class="text-sm text-gray-400">{{ it.product.category.name }}</div>
+              {% endif %}
+            {% else %}
+              <div class="font-semibold text-lg text-gray-400">Товар удалён</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <form action="{% url 'store:update_cart' it.pk %}" method="post" class="flex items-center gap-2">
+            {% csrf_token %}
+            <input 
+              type="number" 
+              name="quantity" 
+              value="{{ it.quantity }}" 
+              min="1"
+              class="w-16 p-2 rounded bg-secondary text-gray-200 text-center"
+            >
+            <button name="action" value="update" class="px-3 py-1 bg-primary hover:bg-teal-500 transition rounded">OK</button>
+          </form>
+
+          <form action="{% url 'store:update_cart' it.pk %}" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="remove">
+            <button class="px-3 py-1 bg-red-600 hover:bg-red-700 transition rounded">Удалить</button>
+          </form>
+
+          <div class="font-bold text-primary text-lg whitespace-nowrap">₸{{ it.subtotal }}</div>
+        </div>
+      </div>
+      {% endfor %}
+
+      <div class="flex justify-between items-center font-bold text-primary text-xl mt-6 border-t border-gray-700 pt-4">
+        <div>Итого:</div>
+        <div>₸{{ total }}</div>
+      </div>
+
+      <form action="{% url 'store:checkout' %}" method="post" class="mt-8 max-w-lg mx-auto bg-secondary p-6 rounded-lg shadow">
+        {% csrf_token %}
+        <h2 class="text-xl font-semibold mb-4 text-center text-gray-100">Оформление заказа</h2>
+        <input type="text" name="full_name" placeholder="Ф.И.О." class="w-full p-3 rounded bg-accent text-gray-200 mb-3">
+        <input type="text" name="address" placeholder="Адрес доставки" class="w-full p-3 rounded bg-accent text-gray-200 mb-3">
+        <input type="text" name="phone" placeholder="Телефон" class="w-full p-3 rounded bg-accent text-gray-200 mb-4">
+        <button type="submit" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-teal-500 transition w-full text-lg font-semibold">Оплатить (тест)</button>
+      </form>
+
+    </div>
+  {% else %}
+    <p class="text-gray-400 text-center text-lg">Корзина пуста.</p>
+  {% endif %}
+</div>
+{% endblock %}

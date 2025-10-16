@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Мои заказы{% endblock %}
+{% block content %}
+<h1 class="text-3xl font-bold mb-6 text-primary">История заказов</h1>
+
+{% if orders %}
+  <div class="space-y-6">
+    {% for order in orders %}
+      <div class="bg-accent rounded-xl p-6 shadow-lg">
+        <div class="flex justify-between items-center mb-4">
+          <div>
+            <div class="text-lg font-semibold">Заказ #{{ order.id }}</div>
+            <div class="text-sm text-gray-400">Дата: {{ order.created }}</div>
+          </div>
+          <div class="text-right">
+            <div class="font-bold text-primary">₸{{ order.total }}</div>
+            <div class="text-sm mt-1">
+              {% if order.status == 'paid' %}
+                <span class="px-3 py-1 rounded bg-green-700 text-sm">Оплачен</span>
+              {% elif order.status == 'processing' %}
+                <span class="px-3 py-1 rounded bg-yellow-700 text-sm">Обработка</span>
+              {% else %}
+                <span class="px-3 py-1 rounded bg-gray-700 text-sm">{{ order.status }}</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-4">
+          {% for item in order.items.all %}
+          <div class="flex gap-4 items-center bg-secondary p-3 rounded">
+            {% if item.product and item.product.image %}
+              <img src="{{ item.product.image.url }}" class="w-24 h-24 object-cover rounded" alt="{{ item.product.title }}">
+            {% else %}
+              <div class="w-24 h-24 bg-gray-800 rounded flex items-center justify-center text-gray-400 text-sm">Нет фото</div>
+            {% endif %}
+            <div>
+              {% if item.product %}
+                <div class="font-semibold">{{ item.product.title }}</div>
+              {% else %}
+                <div class="font-semibold text-gray-400">Товар удалён</div>
+              {% endif %}
+              <div class="text-sm text-gray-400">Кол-во: {{ item.quantity }}</div>
+              <div class="text-primary font-bold">₸{{ item.price }}</div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <p>Заказов нет.</p>
+{% endif %}
+{% endblock %}
