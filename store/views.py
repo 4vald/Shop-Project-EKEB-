@@ -111,30 +111,19 @@ class UpdateCartItemView(View):
 
 # Checkout: создаёт заказ (status='processing'), создаёт OrderItems, очищает корзину,
 # сохраняет last_order_id в сессии и редиректит на success page.
-@login_required(login_url='/login/')
 class CheckoutView(LoginRequiredMixin, View):
     login_url = '/login/'
 
-    def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            messages.warning(request, "Пожалуйста, войдите, чтобы оформить заказ.")
-            return redirect(self.login_url)
-        return super().dispatch(request, *args, **kwargs)
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        items = CartItem.objects.filter(user=user)
 
-
-    def post(self, request):
-        if request.user.is_authenticated:
-            items = CartItem.objects.filter(user=request.user)
-        else:
-            session_key = _get_session_key(request)
-            items = CartItem.objects.filter(session_key=session_key)
-
-        # 🚫 Проверка: корзина пуста
+        # Проверка: корзина пуста
         if not items.exists():
             messages.error(request, "Ваша корзина пуста. Добавьте товары перед оформлением заказа.")
             return redirect('store:cart')
 
-        # 🚫 Проверка обязательных полей
+        # Проверка обязательных полей
         full_name = request.POST.get('full_name', '').strip()
         address = request.POST.get('address', '').strip()
         phone = request.POST.get('phone', '').strip()
@@ -142,25 +131,8 @@ class CheckoutView(LoginRequiredMixin, View):
         if not all([full_name, address, phone]):
             messages.error(request, "Пожалуйста, заполните все поля формы.")
             return redirect('store:cart')
-        
 
-        # получаем позиции корзины
-        if request.user.is_authenticated:
-            items = CartItem.objects.filter(user=request.user)
-            user = request.user
-        else:
-            session_key = _get_session_key(request)
-            items = CartItem.objects.filter(session_key=session_key)
-            user = None
-
-        if not items.exists():
-            return redirect('store:cart')
-
-        # данные покупателя из формы (если есть)
-        full_name = request.POST.get('full_name', request.POST.get('name', 'Гость'))
-        address = request.POST.get('address', '')
-        phone = request.POST.get('phone', '')
-
+        # Создание заказа
         order = Order.objects.create(
             user=user,
             full_name=full_name,
@@ -173,28 +145,23 @@ class CheckoutView(LoginRequiredMixin, View):
 
         total = 0
         for it in items:
-            # snapshot цены в момент заказа
             price = float(it.product.price)
             OrderItem.objects.create(order=order, product=it.product, price=price, quantity=it.quantity)
             total += price * it.quantity
 
         order.total = total
         order.save()
-        messages.success(request, "Ваш заказ успешно оформлен!")
-        return redirect("store:orders")
 
-        # очистка корзины
-        if user:
-            CartItem.objects.filter(user=user).delete()
-        else:
-            CartItem.objects.filter(session_key=session_key).delete()
+        # Очистка корзины
+        CartItem.objects.filter(user=user).delete()
 
-        # сохранить id заказа в сессии, чтобы на странице success мы могли пометить как paid
+        # Сохранение id заказа в сессии
         request.session['last_order_id'] = order.id
 
-        # редирект на страницу имитации платежа /success — которая поменяет статус на 'paid' и отправит на orders
+        messages.success(request, "Ваш заказ успешно оформлен!")
+        # Редирект на страницу имитации платежа
         return redirect('store:payment_success')
-
+    
 # Фейковая страница успеха оплаты: меняет статус 'processing'->'paid', показывает страницу успеха,
 # затем перенаправляет на /orders/
 def payment_success(request):

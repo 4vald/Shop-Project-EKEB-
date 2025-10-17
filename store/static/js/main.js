@@ -15,4 +15,4 @@ setTimeout(() => {
         el.style.transform = 'translateY(-10px)';
         setTimeout(() => el.remove(), 500);
     });
-}, 3000);
+    }, 3000);
