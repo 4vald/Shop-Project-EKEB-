@@ -9,6 +9,19 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
+        <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: '#00ADB5',
+              secondary: '#222831',
+              accent: '#393E46'
+            }
+          }
+        }
+      }
+    </script>
 </head>
 
 <body class="dark-theme">
@@ -62,27 +75,5 @@
     </footer>
 
 
-
-        
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              primary: '#00ADB5',
-              secondary: '#222831',
-              accent: '#393E46'
-            }
-          }
-        }
-      }
-      setTimeout(() => {
-    document.querySelectorAll('.z-50 > div').forEach(el => {
-        el.style.opacity = '0';
-        el.style.transform = 'translateY(-10px)';
-        setTimeout(() => el.remove(), 500);
-    });
-    }, 3000);
-    </script>
 </body>
 </html>
