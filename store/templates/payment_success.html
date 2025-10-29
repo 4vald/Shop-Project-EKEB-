@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Оплата успешна{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto text-center bg-accent p-8 rounded-xl shadow-lg">
+  <h1 class="text-3xl font-bold text-primary mb-4">Оплата успешно выполнена ✅</h1>
+  {% if order %}
+    <p class="text-gray-300 mb-2">Заказ <span class="font-semibold">#{{ order.id }}</span> оплачен.</p>
+    <p class="text-gray-400 mb-4">Сумма: <span class="text-primary font-bold">₸{{ order.total }}</span></p>
+  {% else %}
+    <p class="text-gray-300 mb-4">Информация о заказе не найдена.</p>
+  {% endif %}
+  <a href="{% url 'store:orders' %}" class="inline-block mt-4 bg-primary text-white px-6 py-3 rounded">Перейти в мои заказы</a>
+</div>
+{% endblock %}

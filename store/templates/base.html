@@ -1,0 +1,83 @@
+{% load static %}
+{% get_media_prefix as MEDIA_URL %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Магазин{% endblock %}</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+        <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: '#00ADB5',
+              secondary: '#222831',
+              accent: '#393E46'
+            }
+          }
+        }
+      }
+    </script>
+</head>
+
+<body class="dark-theme">
+    <!-- NAVBAR -->
+<nav class="fixed top-0 left-0 w-full z-50 bg-accent p-4 flex justify-between items-center shadow-md">
+  <a href="/" class="text-primary text-2xl font-bold">ShopZone</a>
+        <ul class="flex space-x-6">
+            <li><a href="/" class="hover:text-primary transition">Главная</a></li>
+            <li><a href="/about/" class="hover:text-primary transition">О нас</a></li>
+            <li><a href="/contact/" class="hover:text-primary transition">Связаться с нами</a></li>
+            <li><a href="/orders/" class="hover:text-primary transition">Заказы</a></li>
+            <li><a href="/cart/" class="hover:text-primary transition">Корзина</a></li>
+            <li><a href="/login/" class="hover:text-primary transition">Войти</a></li>
+        </ul>
+    </nav>
+
+
+
+{% if messages %}
+  <div class="fixed top-4 right-4 z-50 space-y-2">
+    {% for message in messages %}
+      <div
+        class="px-4 py-3 rounded-lg shadow-lg text-white transition transform duration-500 
+               {% if message.tags == 'success' %} bg-green-600
+               {% elif message.tags == 'error' %} bg-red-600
+               {% elif message.tags == 'warning' %} bg-yellow-500 text-gray-900
+               {% else %} bg-gray-700 {% endif %}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+
+
+    <!-- CONTENT -->
+    <main class="min-h-screen container mx-auto p-6">
+        {% block content %}{% endblock %}
+    </main>
+    <li>
+  {% if user.is_authenticated %}
+    <a href="{% url 'store:logout' %}" class="hover:text-primary transition">Выйти</a>
+  {% else %}
+    <a href="{% url 'store:login' %}" class="hover:text-primary transition">Войти</a>
+  {% endif %}
+</li>
+
+
+    <!-- FOOTER -->
+    <footer class="bg-accent p-6 text-center text-gray-400 mt-8 border-t border-gray-700">
+        <p>© 2025 ShopZone. Все права защищены.</p>
+        <p class="text-sm mt-2">Сделано на Django и TailwindCSS</p>
+    </footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

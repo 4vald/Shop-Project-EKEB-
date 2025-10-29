@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}Вход{% endblock %}
+{% block content %}
+<h1 class="text-3xl font-bold mb-6 text-primary text-center">Вход</h1>
+
+<form method="post" class="bg-accent p-6 rounded-xl shadow-lg max-w-md mx-auto space-y-4">
+  {% csrf_token %}
+  <input type="text" name="username" placeholder="Имя пользователя" class="w-full p-3 rounded bg-secondary text-gray-200" required>
+  <input type="password" name="password" placeholder="Пароль" class="w-full p-3 rounded bg-secondary text-gray-200" required>
+  <button type="submit" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-teal-500 transition w-full">
+    Войти
+  </button>
+</form>
+
+<p class="text-center mt-4 text-gray-400">
+  Нет аккаунта?
+  <a href="{% url 'store:register' %}" class="text-primary hover:underline">Зарегистрироваться</a>
+</p>
+{% endblock %}

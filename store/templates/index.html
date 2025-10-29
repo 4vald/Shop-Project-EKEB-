@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Главная{% endblock %}
+
+{% block content %}
+<div id="heroCarousel" class="carousel slide mb-10 rounded-xl overflow-hidden shadow-lg" data-bs-ride="carousel">
+<!-- 🖼️ БАННЕР -->
+<div id="heroCarousel" class="carousel slide mb-10 rounded-xl overflow-hidden shadow-lg" data-bs-ride="carousel">
+  <div class="carousel-inner">
+    {% for banner in banners %}
+      <div class="carousel-item {% if forloop.first %}active{% endif %}">
+        {% if banner.product %}
+          <a href="{% url 'store:product_detail' banner.product.id %}">
+            <img src="{{ banner.image.url }}" 
+                 class="d-block w-100 object-cover"
+                 style="height: 400px;" 
+                 alt="{{ banner.product.title }}">
+          </a>
+        {% else %}
+          <img src="{{ banner.image.url }}" 
+               class="d-block w-100 object-cover"
+               style="height: 400px;" 
+               alt="Баннер {{ forloop.counter }}">
+        {% endif %}
+      </div>
+    {% empty %}
+      <div class="carousel-item active">
+        <img src="{% static 'default_banner.jpg' %}" 
+             class="d-block w-100 object-cover"
+             style="height: 400px;" 
+             alt="Баннер по умолчанию">
+      </div>
+    {% endfor %}
+  </div>
+
+  <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+    <span class="carousel-control-prev-icon"></span>
+  </button>
+  <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+    <span class="carousel-control-next-icon"></span>
+  </button>
+</div>
+
+<!-- 🛍️ СПИСОК ТОВАРОВ -->
+<h1 class="text-3xl font-bold mb-6 text-primary">Популярные товары</h1>
+<div class="grid md:grid-cols-3 sm:grid-cols-2 gap-6">
+  {% for product in products %}
+  <div class="bg-accent rounded-2xl overflow-hidden shadow-lg hover:scale-105 transition transform">
+    {% if product.image %}
+      <img src="{{ product.image.url }}" alt="{{ product.title }}" class="w-full h-48 object-cover">
+    {% else %}
+      <img src="https://via.placeholder.com/400x250?text={{ product.title }}" alt="{{ product.title }}" class="w-full">
+    {% endif %}
+    <div class="p-4">
+      <h2 class="text-xl font-semibold mb-2">{{ product.title }}</h2>
+      <p class="text-gray-400 mb-3">{{ product.description|truncatechars:80 }}</p>
+      <p class="text-primary font-bold text-lg mb-3">₸{{ product.price }}</p>
+      <a href="{% url 'store:product_detail' product.id %}" class="bg-primary text-white px-4 py-2 rounded hover:bg-teal-500 transition">Подробнее</a>
+    </div>
+  </div>
+  {% empty %}
+  <p>Товары пока не добавлены.</p>
+  {% endfor %}
+</div>
+
+{% endblock %}
