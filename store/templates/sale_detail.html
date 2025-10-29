@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}{{ sale.title }}{% endblock %}
+
+{% block content %}
+<h1 class="text-3xl font-bold mb-4 text-primary">{{ sale.title }}</h1>
+<p class="text-gray-300 mb-6">{{ sale.description }}</p>
+<p class="text-lg font-semibold mb-4 text-red-400">Скидка: {{ sale.discount_percent }}%</p>
+
+<h2 class="text-2xl font-semibold mb-4">Товары по акции:</h2>
+<div class="grid md:grid-cols-3 sm:grid-cols-2 gap-6">
+  {% for product in products %}
+  <div class="bg-accent rounded-2xl overflow-hidden shadow-lg hover:scale-105 transition">
+    {% if product.image %}
+      <img src="{{ product.image.url }}" alt="{{ product.title }}" class="w-full h-48 object-cover">
+    {% endif %}
+    <div class="p-4">
+      <h3 class="text-xl font-semibold mb-2">{{ product.title }}</h3>
+      <p class="text-gray-400 mb-3">{{ product.description|truncatechars:80 }}</p>
+      <p class="text-primary font-bold text-lg mb-3">
+        ₸{{ product.price|floatformat:0 }}
+        <span class="text-red-400">(-{{ sale.discount_percent }}%)</span>
+      </p>
+      <a href="{% url 'store:product_detail' product.id %}" class="bg-primary text-white px-4 py-2 rounded hover:bg-teal-500 transition">Подробнее</a>
+    </div>
+  </div>
+  {% empty %}
+  <p>Товары не указаны для этой акции.</p>
+  {% endfor %}
+</div>
+{% endblock %}

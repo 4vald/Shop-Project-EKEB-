@@ -3,32 +3,23 @@
 {% block title %}Главная{% endblock %}
 
 {% block content %}
-<div id="heroCarousel" class="carousel slide mb-10 rounded-xl overflow-hidden shadow-lg" data-bs-ride="carousel">
+
 <!-- 🖼️ БАННЕР -->
 <div id="heroCarousel" class="carousel slide mb-10 rounded-xl overflow-hidden shadow-lg" data-bs-ride="carousel">
   <div class="carousel-inner">
     {% for banner in banners %}
       <div class="carousel-item {% if forloop.first %}active{% endif %}">
-        {% if banner.product %}
-          <a href="{% url 'store:product_detail' banner.product.id %}">
-            <img src="{{ banner.image.url }}" 
-                 class="d-block w-100 object-cover"
-                 style="height: 400px;" 
-                 alt="{{ banner.product.title }}">
+        {% if banner.sale %}
+          <a href="{{ banner.sale.get_absolute_url }}">
+            <img src="{{ banner.image.url }}" class="d-block w-100 h-[400px] object-cover" alt="Баннер {{ forloop.counter }}">
           </a>
         {% else %}
-          <img src="{{ banner.image.url }}" 
-               class="d-block w-100 object-cover"
-               style="height: 400px;" 
-               alt="Баннер {{ forloop.counter }}">
+          <img src="{{ banner.image.url }}" class="d-block w-100 h-[400px] object-cover" alt="Баннер {{ forloop.counter }}">
         {% endif %}
       </div>
     {% empty %}
       <div class="carousel-item active">
-        <img src="{% static 'default_banner.jpg' %}" 
-             class="d-block w-100 object-cover"
-             style="height: 400px;" 
-             alt="Баннер по умолчанию">
+        <img src="{% static 'default_banner.jpg' %}" class="d-block w-100 h-[400px] object-cover" alt="Баннер по умолчанию">
       </div>
     {% endfor %}
   </div>

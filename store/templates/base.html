@@ -30,17 +30,24 @@
     <!-- NAVBAR -->
 <nav class="fixed top-0 left-0 w-full z-50 bg-accent p-4 flex justify-between items-center shadow-md">
   <a href="/" class="text-primary text-2xl font-bold">ShopZone</a>
-        <ul class="flex space-x-6">
-            <li><a href="/" class="hover:text-primary transition">Главная</a></li>
-            <li><a href="/about/" class="hover:text-primary transition">О нас</a></li>
-            <li><a href="/contact/" class="hover:text-primary transition">Связаться с нами</a></li>
-            <li><a href="/orders/" class="hover:text-primary transition">Заказы</a></li>
-            <li><a href="/cart/" class="hover:text-primary transition">Корзина</a></li>
-            <li><a href="/login/" class="hover:text-primary transition">Войти</a></li>
-        </ul>
-    </nav>
+  <ul class="flex space-x-6">
+      <li><a href="/" class="hover:text-primary transition">Главная</a></li>
+      <li><a href="/about/" class="hover:text-primary transition">О нас</a></li>
+      <li><a href="/contact/" class="hover:text-primary transition">Связаться с нами</a></li>
+      <li><a href="/orders/" class="hover:text-primary transition">Заказы</a></li>
+      <li><a href="/cart/" class="hover:text-primary transition">Корзина</a></li>
+      <li><a href="{% url 'store:sale_list' %}" class="hover:text-primary transition">Акции</a></li>
 
-
+      <!-- 🔐 Вход / Выход -->
+      <li>
+        {% if user.is_authenticated %}
+          <a href="{% url 'store:logout' %}" class="hover:text-primary transition">Выйти</a>
+        {% else %}
+          <a href="{% url 'store:login' %}" class="hover:text-primary transition">Войти</a>
+        {% endif %}
+      </li>
+  </ul>
+</nav>
 
 {% if messages %}
   <div class="fixed top-4 right-4 z-50 space-y-2">

@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views import View
-from .models import Product, CartItem, Order, OrderItem,  ContactMessage, HeroBanner
+from .models import Product, CartItem, Order, OrderItem,  ContactMessage, HeroBanner, Sale, Product
 from django.contrib.auth import get_user_model, authenticate, login, logout
 from django.utils import timezone
 from .forms import ContactForm, RegisterForm
@@ -256,3 +256,12 @@ def register_view(request):
     return render(request, "register.html", {"form": form})
 
 
+
+def sale_list(request):
+    sales = Sale.objects.all()
+    return render(request, 'sale_list.html', {'sales': sales})
+
+def sale_detail(request, sale_id):
+    sale = get_object_or_404(Sale, id=sale_id)
+    products = sale.products.all()
+    return render(request, 'sale_detail.html', {'sale': sale, 'products': products})

@@ -98,19 +98,29 @@ class ContactMessage(models.Model):
 
 class HeroBanner(models.Model):
     image = models.ImageField(upload_to='banners/')
-    product = models.ForeignKey(
-        Product,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='banners',
-        help_text="Если указать товар — баннер будет вести на его страницу"
-    )
-    order = models.PositiveIntegerField(default=0, help_text="Порядок отображения")
+    order = models.PositiveIntegerField(default=0)
     active = models.BooleanField(default=True)
+    sale = models.ForeignKey('Sale', on_delete=models.SET_NULL, null=True, blank=True, related_name='banners')
 
     class Meta:
         ordering = ['order']
 
     def __str__(self):
         return f"Баннер {self.pk} (порядок {self.order})"
+
+
+
+from django.urls import reverse
+
+class Sale(models.Model):
+    title = models.CharField(max_length=255, verbose_name="Название акции")
+    description = models.TextField(blank=True, verbose_name="Описание")
+    discount_percent = models.PositiveIntegerField(default=0, verbose_name="Скидка (%)")
+    products = models.ManyToManyField('Product', related_name='sales', verbose_name="Товары")
+    image = models.ImageField(upload_to='sales/', blank=True, null=True, verbose_name="Изображение баннера")
+
+    def __str__(self):
+        return f"{self.title} (-{self.discount_percent}%)"
+
+    def get_absolute_url(self):
+        return reverse('store:sale_detail', args=[self.id])

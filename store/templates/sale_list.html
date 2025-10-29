@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Акции{% endblock %}
+
+{% block content %}
+<h1 class="text-3xl font-bold mb-6 text-primary">🔥 Акции и скидки</h1>
+
+<div class="grid md:grid-cols-2 gap-6">
+  {% for sale in sales %}
+    <div class="bg-accent rounded-xl overflow-hidden shadow-lg hover:scale-105 transition">
+      {% if sale.image %}
+        <a href="{{ sale.get_absolute_url }}">
+          <img src="{{ sale.image.url }}" alt="{{ sale.title }}" class="w-full h-56 object-cover">
+        </a>
+      {% endif %}
+      <div class="p-4">
+        <h2 class="text-xl font-semibold mb-2">{{ sale.title }}</h2>
+        <p class="text-gray-300 mb-2">{{ sale.description|truncatechars:100 }}</p>
+        <p class="text-primary font-bold">Скидка: {{ sale.discount_percent }}%</p>
+        <a href="{{ sale.get_absolute_url }}" class="text-primary hover:underline">Подробнее</a>
+      </div>
+    </div>
+  {% empty %}
+    <p>Пока нет активных акций.</p>
+  {% endfor %}
+</div>
+{% endblock %}

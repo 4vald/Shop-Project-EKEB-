@@ -1,10 +1,17 @@
+/* ============================= */
+/*      Тёмная тема сайта        */
+/* ============================= */
+
 body.dark-theme {
-  background-color: #181a1f; /* глубокий, но не чёрный */
+  background-color: #181a1f; /* фон страницы */
   font-family: 'Inter', sans-serif;
+  color: #e0e0e0; /* светлый текст по умолчанию */
   transition: background 0.3s, color 0.3s;
 }
 
-/* Навигация */
+/* ============================= */
+/*          Навигация            */
+/* ============================= */
 nav {
   background-color: #1f2228;
   border-bottom: 1px solid #2c2f36;
@@ -20,13 +27,16 @@ nav a:hover {
   color: #4dd0e1; /* приглушённый бирюзовый */
 }
 
-/* Карточки товаров */
+/* ============================= */
+/*      Карточки товаров         */
+/* ============================= */
 .card, .product {
-  background-color: #22252b; /* тёмный серо-графит */
+  background-color: #22252b;
   border-radius: 14px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
   padding: 18px;
   transition: transform 0.15s, box-shadow 0.3s;
+  color: #e0e0e0; /* текст внутри карточек */
 }
 
 .card:hover, .product:hover {
@@ -34,9 +44,16 @@ nav a:hover {
   box-shadow: 0 3px 12px rgba(0, 0, 0, 0.4);
 }
 
-/* Кнопки */
+/* Общее для текста внутри карточек */
+.card p, .card span, .product p, .product span {
+  color: #e0e0e0;
+}
+
+/* ============================= */
+/*           Кнопки              */
+/* ============================= */
 button, .btn {
-  background-color: #2a9d8f; /* приглушённый зелёно-бирюзовый */
+  background-color: #2a9d8f;
   color: #f1f1f1;
   border: none;
   padding: 10px 16px;
@@ -50,13 +67,17 @@ button:hover, .btn:hover {
   transform: scale(1.02);
 }
 
-/* Цены */
+/* ============================= */
+/*            Цены               */
+/* ============================= */
 .price {
-  color: #81d4fa; /* спокойный голубой */
+  color: #81d4fa;
   font-weight: bold;
 }
 
-/* Формы */
+/* ============================= */
+/*            Формы              */
+/* ============================= */
 input, textarea {
   background-color: #1d1f25;
   border: 1px solid #2f3239;
@@ -71,12 +92,23 @@ input:focus, textarea:focus {
   outline: none;
 }
 
-/* Заголовки */
-h1, h2, h3, h4 {
+/* ============================= */
+/*          Заголовки            */
+/* ============================= */
+h1, h2, h3, h4, h5, h6 {
   color: #f0f0f0;
 }
 
-/* Footer */
+/* ============================= */
+/*          Абзацы и текст       */
+/* ============================= */
+p, span, li, a, small, strong, em {
+  color: #e0e0e0;
+}
+
+/* ============================= */
+/*           Footer              */
+/* ============================= */
 footer {
   background-color: #1f2228;
   color: #9ca3af;
@@ -85,7 +117,9 @@ footer {
   text-align: center;
 }
 
-/* Django сообщения */
+/* ============================= */
+/*        Django сообщения       */
+/* ============================= */
 .alert-success {
   background-color: #1b4332;
   color: #d8f3dc;
@@ -102,6 +136,9 @@ footer {
   margin-bottom: 12px;
 }
 
+/* ============================= */
+/*           Баннер              */
+/* ============================= */
 .banner {
   position: relative;
   width: 100%;
