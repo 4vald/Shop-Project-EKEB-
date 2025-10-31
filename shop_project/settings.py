@@ -117,8 +117,9 @@ USE_TZ = True
 
 import os
 BASE_DIR = Path(__file__).resolve().parent.parent  # если используешь Path
+
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = BASE_DIR / 'media'
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']

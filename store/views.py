@@ -24,10 +24,10 @@ from .models import Product, HeroBanner
 
 def index(request):
     products = Product.objects.all()
-    banners = HeroBanner.objects.filter(active=True)
+    banners = HeroBanner.objects.filter(active=True).order_by('order')
     return render(request, 'index.html', {'products': products, 'banners': banners})
 
-# Страница товара с формой добавления в корзину
+
 def product_detail(request, product_id):
     product = get_object_or_404(Product, pk=product_id)
     return render(request, 'product_detail.html', {'product': product})
@@ -256,10 +256,10 @@ def register_view(request):
     return render(request, "register.html", {"form": form})
 
 
-
 def sale_list(request):
     sales = Sale.objects.all()
     return render(request, 'sale_list.html', {'sales': sales})
+
 
 def sale_detail(request, sale_id):
     sale = get_object_or_404(Sale, id=sale_id)
