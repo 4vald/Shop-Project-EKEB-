@@ -1,12 +1,13 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views import View
-from .models import Product, CartItem, Order, OrderItem,  ContactMessage, HeroBanner, Sale, Product
+from .models import Product, CartItem, Order, OrderItem,  ContactMessage, HeroBanner, Sale, Product, Category
 from django.contrib.auth import get_user_model, authenticate, login, logout
 from django.utils import timezone
 from .forms import ContactForm, RegisterForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Q
 
 
 User = get_user_model()
@@ -25,9 +26,12 @@ from .models import Product, HeroBanner
 def index(request):
     products = Product.objects.all()
     banners = HeroBanner.objects.filter(active=True).order_by('order')
-    return render(request, 'index.html', {'products': products, 'banners': banners})
-
-
+    categories = Category.objects.all()
+    return render(request, 'index.html', {
+        'products': products,
+        'banners': banners,
+        'categories': categories,
+    })
 def product_detail(request, product_id):
     product = get_object_or_404(Product, pk=product_id)
     return render(request, 'product_detail.html', {'product': product})
@@ -291,3 +295,47 @@ def sale_detail(request, sale_id):
     sale = get_object_or_404(Sale, id=sale_id)
     products = sale.products.all()
     return render(request, 'sale_detail.html', {'sale': sale, 'products': products})
+
+
+
+def search_products(request):
+    query = request.GET.get('q', '').strip()
+    category_id = request.GET.get('category', '')
+    min_price = request.GET.get('min_price', '')
+    max_price = request.GET.get('max_price', '')
+    has_discount = request.GET.get('has_discount', '')
+
+    products = Product.objects.all()
+
+    # Поиск по названию и описанию
+    if query:
+        products = products.filter(Q(title__icontains=query) | Q(description__icontains=query))
+
+    # Фильтр по категории
+    if category_id.isdigit():
+        products = products.filter(category_id=int(category_id))
+
+    # Фильтр по цене
+    try:
+        if min_price:
+            products = products.filter(price__gte=float(min_price))
+        if max_price:
+            products = products.filter(price__lte=float(max_price))
+    except ValueError:
+        pass
+
+    # Фильтр по скидкам
+    if has_discount == '1':
+        products = products.filter(sales__discount_percent__gt=0).distinct()
+
+    categories = Category.objects.all()
+    
+    return render(request, 'search_results.html', {
+        'products': products,
+        'query': query,
+        'categories': categories,
+        'selected_category': int(category_id) if category_id.isdigit() else None,
+        'min_price': min_price,
+        'max_price': max_price,
+        'has_discount': has_discount
+    })

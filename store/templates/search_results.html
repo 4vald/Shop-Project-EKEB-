@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}Результаты поиска{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-6">
+
+  <div class="flex justify-between items-center mb-8">
+    <h1 class="text-3xl font-bold text-primary">Результаты поиска</h1>
+
+    {% if query %}
+      <p class="text-gray-400 text-sm">По запросу: <span class="text-white font-medium">"{{ query }}"</span></p>
+    {% endif %}
+  </div>
+
+  {% if products %}
+    <div class="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      {% for product in products %}
+        <div class="bg-accent rounded-2xl overflow-hidden shadow-lg hover:shadow-primary/30 hover:-translate-y-1 transition transform">
+          {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.title }}" class="w-full h-48 object-cover">
+          {% else %}
+            <div class="w-full h-48 bg-gray-700 flex items-center justify-center text-gray-400">Нет фото</div>
+          {% endif %}
+
+          <div class="p-5">
+            <h2 class="text-lg font-semibold text-white truncate">{{ product.title }}</h2>
+
+            {% if product.active_sale and product.active_sale.discount_percent > 0 %}
+              <div class="text-sm text-gray-500 line-through mt-1">₸{{ product.price|floatformat:0 }}</div>
+              <div class="text-red-500 font-bold text-xl">
+                ₸{{ product.discounted_price|floatformat:0 }}
+                <span class="text-sm text-yellow-300">(-{{ product.active_sale.discount_percent }}%)</span>
+              </div>
+            {% else %}
+              <div class="text-primary font-bold text-xl mt-1">₸{{ product.price|floatformat:0 }}</div>
+            {% endif %}
+
+            <a href="{% url 'store:product_detail' product.id %}" 
+               class="block mt-4 bg-primary hover:bg-teal-500 text-center text-white font-semibold py-2 rounded-lg transition">
+              Подробнее
+            </a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="text-center text-gray-400 mt-16">
+      <p class="text-lg">Ничего не найдено.</p>
+      <p class="text-sm mt-2">Попробуйте изменить фильтры или ввести другой запрос.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
