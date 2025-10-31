@@ -1,9 +1,13 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.urls import reverse
 
 User = get_user_model()
 
+
+# --------------------------
 # Категории товаров
+# --------------------------
 class Category(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(unique=True)
@@ -12,7 +16,9 @@ class Category(models.Model):
         return self.name
 
 
+# --------------------------
 # Товары
+# --------------------------
 class Product(models.Model):
     title = models.CharField(max_length=200)
     slug = models.SlugField(unique=True)
@@ -27,8 +33,24 @@ class Product(models.Model):
     def __str__(self):
         return self.title
 
+    @property
+    def active_sale(self):
+        """Возвращает активную акцию, если товар участвует в ней."""
+        return self.sales.first() if self.sales.exists() else None
 
+    @property
+    def discounted_price(self):
+        """Цена со скидкой, если есть активная акция."""
+        sale = self.active_sale
+        if sale and sale.discount_percent > 0:
+            discount = (self.price * sale.discount_percent) / 100
+            return self.price - discount
+        return self.price
+
+
+# --------------------------
 # Элементы корзины
+# --------------------------
 class CartItem(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     session_key = models.CharField(max_length=40, blank=True, null=True)
@@ -46,7 +68,9 @@ class CartItem(models.Model):
         return f"{self.product.title} x {self.quantity}"
 
 
+# --------------------------
 # Заказы
+# --------------------------
 class Order(models.Model):
     STATUS_CHOICES = (
         ('new', 'New'),
@@ -67,21 +91,26 @@ class Order(models.Model):
         return f"Order #{self.id} ({self.status})"
 
 
+# --------------------------
 # Товары в заказе
+# --------------------------
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    price = models.DecimalField(max_digits=10, decimal_places=2)           # цена со скидкой
     quantity = models.PositiveIntegerField(default=1)
+    original_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    discount_percent = models.PositiveIntegerField(default=0)
 
     def subtotal(self):
-        return self.price * self.quantity
+        return (self.product.discounted_price if hasattr(self.product, 'discounted_price') else self.product.price) * self.quantity
+
 
     def __str__(self):
         return f"{self.product} x {self.quantity}"
-    
-# контакт с нами
-
+# --------------------------
+# Контактные сообщения
+# --------------------------
 class ContactMessage(models.Model):
     name = models.CharField(max_length=100)
     email = models.EmailField()
@@ -93,25 +122,9 @@ class ContactMessage(models.Model):
         return f"{self.name} — {self.subject}"
 
 
-
-
-
-class HeroBanner(models.Model):
-    image = models.ImageField(upload_to='banners/')
-    order = models.PositiveIntegerField(default=0)
-    active = models.BooleanField(default=True)
-    sale = models.ForeignKey('Sale', on_delete=models.SET_NULL, null=True, blank=True, related_name='banners')
-
-    class Meta:
-        ordering = ['order']
-
-    def __str__(self):
-        return f"Баннер {self.pk} (порядок {self.order})"
-
-
-
-from django.urls import reverse
-
+# --------------------------
+# Акции (Sale)
+# --------------------------
 class Sale(models.Model):
     title = models.CharField(max_length=255, verbose_name="Название акции")
     description = models.TextField(blank=True, verbose_name="Описание")
@@ -124,3 +137,19 @@ class Sale(models.Model):
 
     def get_absolute_url(self):
         return reverse('store:sale_detail', args=[self.id])
+
+
+# --------------------------
+# Баннеры
+# --------------------------
+class HeroBanner(models.Model):
+    image = models.ImageField(upload_to='banners/')
+    order = models.PositiveIntegerField(default=0)
+    active = models.BooleanField(default=True)
+    sale = models.ForeignKey('Sale', on_delete=models.SET_NULL, null=True, blank=True, related_name='banners')
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return f"Баннер {self.pk} (порядок {self.order})"

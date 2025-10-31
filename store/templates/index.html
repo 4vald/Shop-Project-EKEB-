@@ -10,12 +10,10 @@
       <div class="min-w-full relative">
         {% if banner.sale %}
           <a href="{{ banner.sale.get_absolute_url }}">
-            <img src="{{ banner.image.url }}" alt="Баннер {{ forloop.counter }}"
-                 class="w-full h-[350px] object-cover"/>
+            <img src="{{ banner.image.url }}" alt="Баннер {{ forloop.counter }}" class="w-full h-[350px] object-cover" />
           </a>
         {% else %}
-          <img src="{{ banner.image.url }}" alt="Баннер {{ forloop.counter }}"
-               class="w-full h-[350px] object-cover"/>
+          <img src="{{ banner.image.url }}" alt="Баннер {{ forloop.counter }}" class="w-full h-[350px] object-cover" />
         {% endif %}
       </div>
     {% endfor %}
@@ -54,6 +52,7 @@
 </script>
 {% endif %}
 
+
 <h1 class="text-3xl font-bold mb-6 text-primary">Популярные товары</h1>
 <div class="grid md:grid-cols-3 sm:grid-cols-2 gap-6">
   {% for product in products %}
@@ -66,8 +65,18 @@
       <div class="p-4">
         <h2 class="text-xl font-semibold mb-2">{{ product.title }}</h2>
         <p class="text-gray-400 mb-3">{{ product.description|truncatechars:80 }}</p>
-        <p class="text-primary font-bold text-lg mb-3">₸{{ product.price }}</p>
-        <a href="{% url 'store:product_detail' product.id %}" class="bg-primary text-white px-4 py-2 rounded hover:bg-teal-500 transition">Подробнее</a>
+
+        {% if product.active_sale %}
+          <p class="text-primary font-bold text-lg mb-3">
+            <span class="line-through text-gray-500 mr-2">₸{{ product.price }}</span>
+            <span class="text-red-500">₸{{ product.discounted_price|floatformat:0 }}</span>
+          </p>
+        {% else %}
+          <p class="text-primary font-bold text-lg mb-3">₸{{ product.price }}</p>
+        {% endif %}
+
+        <a href="{% url 'store:product_detail' product.id %}"
+           class="bg-primary text-white px-4 py-2 rounded hover:bg-teal-500 transition">Подробнее</a>
       </div>
     </div>
   {% empty %}

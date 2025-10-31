@@ -61,9 +61,14 @@ class CartView(View):
         else:
             session_key = request.session.session_key
             items = CartItem.objects.filter(session_key=session_key)
-        total = sum([it.subtotal() for it in items])
-        return render(request, 'cart.html', {'items': items, 'total': total})
 
+        # Пересчёт итоговой суммы с учётом скидок
+        total = 0
+        for it in items:
+            price = it.product.discounted_price if hasattr(it.product, 'discounted_price') else it.product.price
+            total += price * it.quantity
+
+        return render(request, 'cart.html', {'items': items, 'total': total})
 # Добавление товара в корзину
 def add_to_cart(request, product_id):
     product = get_object_or_404(Product, id=product_id)
@@ -114,8 +119,13 @@ class UpdateCartItemView(View):
                 item.save()
         return redirect('store:cart')
 
-# Checkout: создаёт заказ (status='processing'), создаёт OrderItems, очищает корзину,
-# сохраняет last_order_id в сессии и редиректит на success page.
+# Оформление заказа с сохранением скидок
+# Вспомогательная функция для сессии
+def _get_session_key(request):
+    if not request.session.session_key:
+        request.session.create()
+    return request.session.session_key
+
 class CheckoutView(LoginRequiredMixin, View):
     login_url = '/login/'
 
@@ -123,21 +133,18 @@ class CheckoutView(LoginRequiredMixin, View):
         user = request.user
         items = CartItem.objects.filter(user=user)
 
-        # Проверка: корзина пуста
         if not items.exists():
-            messages.error(request, "Ваша корзина пуста. Добавьте товары перед оформлением заказа.")
+            messages.error(request, "Ваша корзина пуста.")
             return redirect('store:cart')
 
-        # Проверка обязательных полей
         full_name = request.POST.get('full_name', '').strip()
         address = request.POST.get('address', '').strip()
         phone = request.POST.get('phone', '').strip()
 
         if not all([full_name, address, phone]):
-            messages.error(request, "Пожалуйста, заполните все поля формы.")
+            messages.error(request, "Заполните все поля.")
             return redirect('store:cart')
 
-        # Создание заказа
         order = Order.objects.create(
             user=user,
             full_name=full_name,
@@ -150,43 +157,61 @@ class CheckoutView(LoginRequiredMixin, View):
 
         total = 0
         for it in items:
-            price = float(it.product.price)
-            OrderItem.objects.create(order=order, product=it.product, price=price, quantity=it.quantity)
+            product = it.product
+            sale = product.active_sale
+
+            # Здесь учитываем только реальные скидки
+            if sale and sale.discount_percent > 0:
+                discount_percent = sale.discount_percent
+                original_price = float(product.price)
+                price = original_price * (1 - discount_percent / 100)
+            else:
+                discount_percent = 0
+                original_price = float(product.price)
+                price = original_price
+
+            OrderItem.objects.create(
+                order=order,
+                product=product,
+                price=price,
+                quantity=it.quantity,
+                original_price=original_price,
+                discount_percent=discount_percent
+            )
             total += price * it.quantity
 
         order.total = total
         order.save()
 
-        # Очистка корзины
         CartItem.objects.filter(user=user).delete()
-
-        # Сохранение id заказа в сессии
         request.session['last_order_id'] = order.id
 
-        messages.success(request, "Ваш заказ успешно оформлен!")
-        # Редирект на страницу имитации платежа
+        messages.success(request, "Заказ оформлен!")
         return redirect('store:payment_success')
-    
+
+
 # Фейковая страница успеха оплаты: меняет статус 'processing'->'paid', показывает страницу успеха,
 # затем перенаправляет на /orders/
+
+
+
 def payment_success(request):
     last_order_id = request.session.get('last_order_id')
+    order = None
     if last_order_id:
         try:
             order = Order.objects.get(pk=last_order_id)
-            # если ещё processing — пометим как paid
             if order.status == 'processing':
                 order.status = 'paid'
                 order.save()
         except Order.DoesNotExist:
-            order = None
-    else:
-        order = None
+            pass
 
     return render(request, 'payment_success.html', {'order': order})
 
 # Orders: показывает историю заказов (для авторизованного пользователя — все его заказы,
 # для гостя — последний заказ по сессии)
+
 def orders(request):
     if request.user.is_authenticated:
         qs = Order.objects.filter(user=request.user).order_by('-created')
@@ -194,6 +219,7 @@ def orders(request):
         last_order_id = request.session.get('last_order_id')
         qs = Order.objects.filter(pk=last_order_id) if last_order_id else Order.objects.none()
     return render(request, 'orders.html', {'orders': qs})
+
 
 # Статические страницы
 def about(request):

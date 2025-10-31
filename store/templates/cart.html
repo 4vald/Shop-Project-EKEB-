@@ -46,14 +46,23 @@
             <button class="px-3 py-1 bg-red-600 hover:bg-red-700 transition rounded">Удалить</button>
           </form>
 
-          <div class="font-bold text-primary text-lg whitespace-nowrap">₸{{ it.subtotal }}</div>
+          <!-- 🔹 Добавляем логику для скидок -->
+          <div class="font-bold text-primary text-lg whitespace-nowrap text-right">
+            {% if it.product.active_sale %}
+              <p class="text-sm text-gray-500 line-through">₸{{ it.product.price|floatformat:0 }}</p>
+              <p class="text-red-500 font-bold text-lg">₸{{ it.product.discounted_price|floatformat:0 }}</p>
+            {% else %}
+              ₸{{ it.product.price|floatformat:0 }}
+            {% endif %}
+            <div class="text-sm text-gray-400">x{{ it.quantity }}</div>
+          </div>
         </div>
       </div>
       {% endfor %}
 
       <div class="flex justify-between items-center font-bold text-primary text-xl mt-6 border-t border-gray-700 pt-4">
         <div>Итого:</div>
-        <div>₸{{ total }}</div>
+        <div>₸{{ total|floatformat:0 }}</div>
       </div>
 
       <form action="{% url 'store:checkout' %}" method="post" class="mt-8 max-w-lg mx-auto bg-secondary p-6 rounded-lg shadow">
