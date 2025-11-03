@@ -1,5 +1,5 @@
 from django import forms
-from .models import ContactMessage
+from .models import ContactMessage, Review
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
@@ -22,3 +22,19 @@ class RegisterForm(UserCreationForm):
     class Meta:
         model = User
         fields = ['username', 'email', 'password1', 'password2']
+
+
+class ReviewForm(forms.ModelForm):
+    class Meta:
+        model = Review
+        fields = ['rating', 'text']
+        widgets = {
+            'rating': forms.NumberInput(attrs={
+                'min': 1, 'max': 5, 'class': 'w-16 text-center rounded bg-gray-800 text-white'
+            }),
+            'text': forms.Textarea(attrs={
+                'class': 'w-full rounded-xl bg-gray-800 text-white p-3',
+                'rows': 3,
+                'placeholder': 'Ваш отзыв...'
+            }),
+        }

@@ -3,11 +3,13 @@ from django.views import View
 from .models import Product, CartItem, Order, OrderItem,  ContactMessage, HeroBanner, Sale, Product, Category
 from django.contrib.auth import get_user_model, authenticate, login, logout
 from django.utils import timezone
-from .forms import ContactForm, RegisterForm
+from .forms import ContactForm, RegisterForm, ReviewForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Q
+from django.db.models import Q, Avg
+from django.shortcuts import get_object_or_404, redirect, render
+from .models import Product, Review
 
 
 User = get_user_model()
@@ -338,4 +340,31 @@ def search_products(request):
         'min_price': min_price,
         'max_price': max_price,
         'has_discount': has_discount
+    })
+
+
+
+@login_required
+def add_review(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    form = ReviewForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        review = form.save(commit=False)
+        review.user = request.user
+        review.product = product
+        review.save()
+        messages.success(request, "Отзыв добавлен!")
+        return redirect('store:product_detail', product_id=product.id)
+    return redirect('store:product_detail', product_id=product.id)
+
+
+
+def product_detail(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    avg_rating = product.reviews.aggregate(Avg('rating'))['rating__avg'] or 0
+    form = ReviewForm()
+    return render(request, 'product_detail.html', {
+        'product': product,
+        'form': form,
+        'avg_rating': avg_rating,  # добавили средний рейтинг
     })

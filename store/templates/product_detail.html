@@ -4,6 +4,7 @@
 {% block content %}
 <div class="md:flex gap-10">
 
+  <!-- 🖼️ Изображение -->
   <div class="md:w-1/2">
     {% if product.image %}
       <img src="{{ product.image.url }}" alt="{{ product.title }}" class="w-full h-auto rounded-lg shadow-lg">
@@ -12,8 +13,28 @@
     {% endif %}
   </div>
 
+  <!-- 🛒 Информация о товаре -->
   <div class="md:w-1/2">
-    <h1 class="text-3xl font-bold mb-4 text-primary">{{ product.title }}</h1>
+    <div class="flex items-center justify-between mb-2">
+      <h1 class="text-3xl font-bold text-primary">{{ product.title }}</h1>
+
+      <!-- ⭐ Средний рейтинг -->
+      <div class="flex items-center gap-1">
+        {% if avg_rating %}
+          {% for i in "12345" %}
+            {% if forloop.counter <= avg_rating %}
+              <span class="text-yellow-400 text-xl">★</span>
+            {% else %}
+              <span class="text-gray-600 text-xl">★</span>
+            {% endif %}
+          {% endfor %}
+          <span class="text-gray-400 text-sm ml-1">({{ avg_rating|floatformat:1 }} / 5)</span>
+        {% else %}
+          <span class="text-gray-400 text-sm">(нет оценок)</span>
+        {% endif %}
+      </div>
+    </div>
+
     <p class="text-gray-400 mb-4">{{ product.description }}</p>
 
     {% if product.active_sale %}
@@ -34,6 +55,74 @@
       </button>
     </form>
   </div>
-
 </div>
+
+<!-- 🗨️ ОТЗЫВЫ -->
+<div class="mt-12 border-t border-gray-700 pt-8">
+  <h2 class="text-2xl font-semibold text-primary mb-6">Отзывы</h2>
+
+  {% if user.is_authenticated %}
+    <form action="{% url 'store:add_review' product.id %}" method="post" class="space-y-4 mb-10">
+      {% csrf_token %}
+      <div>
+        <label class="block text-gray-300 mb-2 font-medium">Оценка:</label>
+        <div class="flex flex-row-reverse justify-end gap-1">
+          {% for i in "54321" %}
+            <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}" class="hidden peer" />
+            <label for="star{{ i }}" 
+                   class="text-3xl cursor-pointer text-gray-500 peer-checked:text-yellow-400 hover:text-yellow-400 transition">
+              ★
+            </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-gray-300 mb-1">Комментарий</label>
+        {{ form.text }}
+      </div>
+
+      <button type="submit"
+              class="bg-primary hover:bg-teal-500 text-white font-semibold px-6 py-2 rounded-xl">
+        Отправить отзыв
+      </button>
+    </form>
+  {% else %}
+    <p class="text-gray-400 mb-4">Авторизуйтесь, чтобы оставить отзыв.</p>
+  {% endif %}
+
+  <!-- Список отзывов -->
+  {% if product.reviews.exists %}
+    {% for review in product.reviews.all %}
+      <div class="bg-accent/70 p-4 rounded-xl mb-3">
+        <div class="flex justify-between items-center mb-2">
+          <span class="font-semibold text-primary">{{ review.user.username }}</span>
+
+          <!-- ⭐ Звёзды для каждого отзыва -->
+          <div class="flex items-center gap-1">
+            {% for i in "12345" %}
+              {% if forloop.counter <= review.rating %}
+                <span class="text-yellow-400 text-xl">★</span>
+              {% else %}
+                <span class="text-gray-600 text-xl">★</span>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+        <p class="text-gray-300">{{ review.text }}</p>
+        <p class="text-sm text-gray-500 mt-1">{{ review.created_at|date:"d.m.Y H:i" }}</p>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p class="text-gray-500">Пока нет отзывов.</p>
+  {% endif %}
+</div>
+
+<style>
+  input[type="radio"] ~ label:hover,
+  input[type="radio"] ~ label:hover ~ label {
+    color: #facc15 !important;
+  }
+</style>
+
 {% endblock %}

@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.urls import reverse
+from django.contrib.auth.models import User
 
 User = get_user_model()
 
@@ -153,3 +154,16 @@ class HeroBanner(models.Model):
 
     def __str__(self):
         return f"Баннер {self.pk} (порядок {self.order})"
+
+class Review(models.Model):
+    product = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='reviews')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    rating = models.PositiveSmallIntegerField(default=5)
+    text = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Отзыв от {self.user.username} для {self.product.title}"
