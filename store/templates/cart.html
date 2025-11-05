@@ -1,20 +1,21 @@
 {% extends 'base.html' %}
 {% block title %}Корзина{% endblock %}
+
 {% block content %}
 <h1 class="text-3xl font-bold mb-6 text-primary">Ваша корзина</h1>
 
 <div class="bg-accent rounded-xl p-6 shadow-lg">
   {% if items %}
-    <div class="space-y-4">
+    <div id="cart-container" class="space-y-4">
       {% for it in items %}
-      <div class="flex flex-col md:flex-row justify-between items-center border-b border-gray-700 pb-4">
-        <div class="flex items-center gap-4 mb-3 md:mb-0 w-full md:w-auto">
+      <div class="flex flex-col md:flex-row justify-between items-center border-b border-gray-700 pb-4 cart-item" data-item-id="{{ it.pk }}">
+        
+        <div class="flex items-center gap-4 mb-3 md:mb-0">
           {% if it.product and it.product.image %}
-            <img src="{{ it.product.image.url }}" class="w-24 h-24 rounded object-cover" alt="{{ it.product.title }}">
+            <img src="{{ it.product.image.url }}" alt="{{ it.product.title }}" class="w-24 h-24 rounded object-cover">
           {% else %}
             <div class="w-24 h-24 bg-gray-800 rounded flex items-center justify-center text-gray-400">Нет фото</div>
           {% endif %}
-
           <div>
             {% if it.product %}
               <div class="font-semibold text-lg">{{ it.product.title }}</div>
@@ -28,29 +29,22 @@
         </div>
 
         <div class="flex items-center gap-3">
-          <form action="{% url 'store:update_cart' it.pk %}" method="post" class="flex items-center gap-2">
-            {% csrf_token %}
-            <input 
-              type="number" 
-              name="quantity" 
-              value="{{ it.quantity }}" 
-              min="1"
-              class="w-16 p-2 rounded bg-secondary text-gray-200 text-center"
-            >
-            <button name="action" value="update" class="px-3 py-1 bg-primary hover:bg-teal-500 transition rounded">OK</button>
-          </form>
+          <input type="number" 
+                 class="cart-quantity w-16 p-2 rounded bg-secondary text-gray-200 text-center"
+                 min="1"
+                 value="{{ it.quantity }}"
+                 data-item-id="{{ it.pk }}">
 
-          <form action="{% url 'store:update_cart' it.pk %}" method="post">
+          <form action="{% url 'store:update_cart' it.pk %}" method="post" class="remove-form">
             {% csrf_token %}
             <input type="hidden" name="action" value="remove">
             <button class="px-3 py-1 bg-red-600 hover:bg-red-700 transition rounded">Удалить</button>
           </form>
 
-          <!-- 🔹 Добавляем логику для скидок -->
-          <div class="font-bold text-primary text-lg whitespace-nowrap text-right">
+          <div id="item-total-{{ it.pk }}" class="font-bold text-primary text-lg whitespace-nowrap">
             {% if it.product.active_sale %}
-              <p class="text-sm text-gray-500 line-through">₸{{ it.product.price|floatformat:0 }}</p>
-              <p class="text-red-500 font-bold text-lg">₸{{ it.product.discounted_price|floatformat:0 }}</p>
+              <span class="line-through text-gray-500 text-sm">₸{{ it.product.price|floatformat:0 }}</span><br>
+              <span class="text-red-500">₸{{ it.product.discounted_price|floatformat:0 }}</span>
             {% else %}
               ₸{{ it.product.price|floatformat:0 }}
             {% endif %}
@@ -62,7 +56,7 @@
 
       <div class="flex justify-between items-center font-bold text-primary text-xl mt-6 border-t border-gray-700 pt-4">
         <div>Итого:</div>
-        <div>₸{{ total|floatformat:0 }}</div>
+        <div id="cart-total">₸{{ total|floatformat:0 }}</div>
       </div>
 
       <form action="{% url 'store:checkout' %}" method="post" class="mt-8 max-w-lg mx-auto bg-secondary p-6 rounded-lg shadow">
@@ -71,7 +65,9 @@
         <input type="text" name="full_name" placeholder="Ф.И.О." class="w-full p-3 rounded bg-accent text-gray-200 mb-3">
         <input type="text" name="address" placeholder="Адрес доставки" class="w-full p-3 rounded bg-accent text-gray-200 mb-3">
         <input type="text" name="phone" placeholder="Телефон" class="w-full p-3 rounded bg-accent text-gray-200 mb-4">
-        <button type="submit" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-teal-500 transition w-full text-lg font-semibold">Оплатить (тест)</button>
+        <button type="submit" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-teal-500 transition w-full text-lg font-semibold">
+          Оплатить (тест)
+        </button>
       </form>
 
     </div>
@@ -79,4 +75,56 @@
     <p class="text-gray-400 text-center text-lg">Корзина пуста.</p>
   {% endif %}
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const csrf = document.querySelector("[name=csrfmiddlewaretoken]")?.value;
+  const cartTotalEl = document.getElementById("cart-total");
+
+  document.querySelectorAll(".cart-quantity").forEach(input => {
+    let timeout = null;
+
+    input.addEventListener("input", e => {
+      clearTimeout(timeout);
+      const itemId = e.target.dataset.itemId;
+      const quantity = parseInt(e.target.value);
+      if (!quantity || quantity < 1) return;
+
+      timeout = setTimeout(async () => {
+        try {
+          const res = await fetch("/cart/update-quantity/", {
+            method: "POST",
+            headers: {
+              "X-CSRFToken": csrf,
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: new URLSearchParams({ item_id: itemId, quantity })
+          });
+
+          const data = await res.json();
+          if (!data.success) return console.error(data.error);
+
+          const el = document.querySelector(`#item-total-${itemId}`);
+          if (data.has_discount) {
+            el.innerHTML = `
+              <span class="line-through text-gray-500 text-sm">${data.original_total}</span><br>
+              <span class="text-red-500 font-bold">${data.discounted_total}</span>
+              <div class="text-sm text-gray-400">x${quantity}</div>
+            `;
+          } else {
+            el.innerHTML = `
+              <span>${data.discounted_total}</span>
+              <div class="text-sm text-gray-400">x${quantity}</div>
+            `;
+          }
+
+          cartTotalEl.textContent = data.cart_total;
+        } catch (err) {
+          console.error("Ошибка обновления:", err);
+        }
+      }, 300);
+    });
+  });
+});
+</script>
 {% endblock %}
