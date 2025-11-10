@@ -39,10 +39,20 @@
           <li><a href="{% url 'store:sale_list' %}" class="hover:text-primary transition">Акции</a></li>
 
           {% if user.is_authenticated %}
-            <li><a href="{% url 'store:logout' %}" class="hover:text-primary transition">Выйти</a></li>
-          {% else %}
-            <li><a href="{% url 'store:login' %}" class="hover:text-primary transition">Войти</a></li>
-          {% endif %}
+  <a href="{% url 'store:profile' %}" class="flex items-center space-x-2">
+    {% if user.profile.avatar %}
+      <img src="{{ user.profile.avatar.url }}" alt="avatar"
+           class="w-10 h-10 rounded-full border-2 border-blue-500 object-cover">
+    {% else %}
+      <img src="{% static 'images/default-avatar.png' %}" alt="avatar"
+           class="w-10 h-10 rounded-full border-2 border-blue-500 object-cover">
+    {% endif %}
+  </a>
+{% else %}
+  <a href="{% url 'store:login' %}" class="text-gray-300 hover:text-white">Войти</a>
+{% endif %}
+
+
       </ul>
     </nav>
 

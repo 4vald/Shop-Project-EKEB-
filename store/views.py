@@ -12,9 +12,9 @@ from decimal import Decimal
 
 from .models import (
     Product, CartItem, Order, OrderItem,
-    ContactMessage, HeroBanner, Sale, Category, Review
+    ContactMessage, HeroBanner, Sale, Category, Review, UserProfile
 )
-from .forms import ContactForm, RegisterForm, ReviewForm
+from .forms import ContactForm, RegisterForm, ReviewForm, UserProfileForm
 
 
 User = get_user_model()
@@ -351,3 +351,18 @@ def update_cart_quantity(request):
         return JsonResponse({"success": False, "error": "Некорректные данные"}, status=400)
     except CartItem.DoesNotExist:
         return JsonResponse({"success": False, "error": "Товар не найден"}, status=404)
+
+@login_required
+def profile_view(request):
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
+
+    if request.method == 'POST':
+        form = UserProfileForm(request.POST, request.FILES, instance=profile)  # <--- добавлено request.FILES
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Профиль успешно обновлён.')
+            return redirect('store:profile')
+    else:
+        form = UserProfileForm(instance=profile)
+
+    return render(request, 'profile.html', {'form': form})

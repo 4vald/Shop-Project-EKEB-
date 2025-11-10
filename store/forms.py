@@ -1,5 +1,5 @@
 from django import forms
-from .models import ContactMessage, Review
+from .models import ContactMessage, Review, UserProfile
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
@@ -37,4 +37,17 @@ class ReviewForm(forms.ModelForm):
                 'rows': 3,
                 'placeholder': 'Ваш отзыв...'
             }),
+        }
+
+
+
+class UserProfileForm(forms.ModelForm):
+    class Meta:
+        model = UserProfile
+        fields = ['first_name', 'last_name', 'city', 'gender', 'avatar']  # <--- добавлено avatar
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'w-full p-2 border rounded bg-gray-800 text-white', 'placeholder': 'Имя'}),
+            'last_name': forms.TextInput(attrs={'class': 'w-full p-2 border rounded bg-gray-800 text-white', 'placeholder': 'Фамилия'}),
+            'city': forms.TextInput(attrs={'class': 'w-full p-2 border rounded bg-gray-800 text-white', 'placeholder': 'Город'}),
+            'gender': forms.Select(attrs={'class': 'w-full p-2 border rounded bg-gray-800 text-white'}),
         }

@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto bg-gray-900 p-8 rounded-lg shadow-lg mt-10 text-white">
+  <h2 class="text-2xl font-bold mb-6">Профиль пользователя</h2>
+
+  <form method="post" enctype="multipart/form-data" class="space-y-4">
+    {% csrf_token %}
+
+    <!-- Аватар -->
+    <div class="flex items-center space-x-6">
+      {% if user.profile.avatar %}
+        <img src="{{ user.profile.avatar.url }}" 
+             class="w-24 h-24 rounded-full object-cover border-2 border-blue-500">
+      {% else %}
+        <img src="{% static 'images/default-avatar.png' %}" 
+             class="w-24 h-24 rounded-full object-cover border-2 border-blue-500">
+      {% endif %}
+      <div>
+        <label class="block text-sm text-gray-400">Изменить аватар</label>
+        {{ form.avatar }}
+      </div>
+    </div>
+
+    <!-- Имя -->
+    <div>
+      <label class="block text-sm text-gray-400">Имя</label>
+      {{ form.first_name }}
+    </div>
+
+    <!-- Фамилия -->
+    <div>
+      <label class="block text-sm text-gray-400">Фамилия</label>
+      {{ form.last_name }}
+    </div>
+
+    <!-- Город -->
+    <div>
+      <label class="block text-sm text-gray-400">Город</label>
+      {{ form.city }}
+    </div>
+
+    <!-- Пол -->
+    <div>
+      <label class="block text-sm text-gray-400">Пол</label>
+      {{ form.gender }}
+    </div>
+
+    <!-- Кнопки -->
+    <div class="flex items-center space-x-4 mt-4">
+      <button type="submit" class="bg-blue-600 hover:bg-blue-700 px-5 py-2 rounded-lg">
+        Сохранить
+      </button>
+      <a href="{% url 'store:logout' %}" class="text-red-400 hover:text-red-500">
+        Выйти
+      </a>
+    </div>
+
+  </form>
+</div>
+{% endblock %}

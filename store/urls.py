@@ -35,4 +35,7 @@ urlpatterns = [
 
     # поиск
     path('search/', views.search_products, name='search_products'),
+
+    #профиль
+    path('profile/', views.profile_view, name='profile'),
 ]
