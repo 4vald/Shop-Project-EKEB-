@@ -27,7 +27,7 @@ class RegisterForm(UserCreationForm):
 class ReviewForm(forms.ModelForm):
     class Meta:
         model = Review
-        fields = ['rating', 'text']
+        fields = ['rating', 'text', 'image']   # <-- добавили 'image'
         widgets = {
             'rating': forms.NumberInput(attrs={
                 'min': 1, 'max': 5, 'class': 'w-16 text-center rounded bg-gray-800 text-white'
@@ -37,8 +37,10 @@ class ReviewForm(forms.ModelForm):
                 'rows': 3,
                 'placeholder': 'Ваш отзыв...'
             }),
+            'image': forms.ClearableFileInput(attrs={
+                'class': 'w-full p-2 rounded bg-gray-800 text-white'
+            }),
         }
-
 
 
 class UserProfileForm(forms.ModelForm):

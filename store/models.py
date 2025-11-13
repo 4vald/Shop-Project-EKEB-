@@ -156,12 +156,12 @@ class HeroBanner(models.Model):
 
     def __str__(self):
         return f"Баннер {self.pk} (порядок {self.order})"
-
 class Review(models.Model):
     product = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='reviews')
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     rating = models.PositiveSmallIntegerField(default=5)
     text = models.TextField(blank=True)
+    image = models.ImageField(upload_to='review_images/', blank=True, null=True)  # <-- добавлено
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -169,7 +169,6 @@ class Review(models.Model):
 
     def __str__(self):
         return f"Отзыв от {self.user.username} для {self.product.title}"
-    
 
 # --------------------------
 # Профиль пользователя

@@ -295,13 +295,18 @@ def search_products(request):
 @login_required
 def add_review(request, product_id):
     product = get_object_or_404(Product, id=product_id)
-    form = ReviewForm(request.POST or None)
-    if request.method == 'POST' and form.is_valid():
-        review = form.save(commit=False)
-        review.user = request.user
-        review.product = product
-        review.save()
-        messages.success(request, "Отзыв добавлен!")
+    if request.method == 'POST':
+        form = ReviewForm(request.POST, request.FILES)
+        if form.is_valid():
+            review = form.save(commit=False)
+            review.user = request.user
+            review.product = product
+            review.save()
+            messages.success(request, "Отзыв добавлен!")
+            return redirect('store:product_detail', product_id=product.id)
+        else:
+            messages.error(request, "Ошибка в форме отзыва.")
+            return redirect('store:product_detail', product_id=product.id)
     return redirect('store:product_detail', product_id=product.id)
 
 

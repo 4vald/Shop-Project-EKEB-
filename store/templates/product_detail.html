@@ -4,50 +4,20 @@
 {% block content %}
 <div class="md:flex gap-10">
 
-  <!-- 🖼️ Изображение -->
+  <!-- Изображение товара -->
   <div class="md:w-1/2">
-    {% if product.image %}
-      <img src="{{ product.image.url }}" alt="{{ product.title }}" class="w-full h-auto rounded-lg shadow-lg">
-    {% else %}
-      <img src="https://via.placeholder.com/500x400?text=No+Image" alt="Нет изображения" class="w-full h-auto rounded-lg shadow-lg">
-    {% endif %}
+    <img src="{{ product.image.url|default:'https://via.placeholder.com/600x600?text=No+Image' }}"
+         alt="{{ product.title }}"
+         id="product-image"
+         class="w-[600px] h-[600px] object-cover rounded-lg shadow-lg cursor-pointer">
   </div>
 
-  <!-- 🛒 Информация о товаре -->
+  <!-- Информация и форма добавления в корзину -->
   <div class="md:w-1/2">
-    <div class="flex items-center justify-between mb-2">
-      <h1 class="text-3xl font-bold text-primary">{{ product.title }}</h1>
-
-      <!-- ⭐ Средний рейтинг -->
-      <div class="flex items-center gap-1">
-        {% if avg_rating %}
-          {% for i in "12345" %}
-            {% if forloop.counter <= avg_rating %}
-              <span class="text-yellow-400 text-xl">★</span>
-            {% else %}
-              <span class="text-gray-600 text-xl">★</span>
-            {% endif %}
-          {% endfor %}
-          <span class="text-gray-400 text-sm ml-1">({{ avg_rating|floatformat:1 }} / 5)</span>
-        {% else %}
-          <span class="text-gray-400 text-sm">(нет оценок)</span>
-        {% endif %}
-      </div>
-    </div>
-
+    <h1 class="text-3xl font-bold text-primary mb-2">{{ product.title }}</h1>
     <p class="text-gray-400 mb-4">{{ product.description }}</p>
 
-    {% if product.active_sale %}
-      <div class="text-lg text-gray-400 line-through">₸{{ product.price|floatformat:0 }}</div>
-      <div class="text-3xl font-bold text-red-500 mb-2">
-        ₸{{ product.discounted_price|floatformat:0 }}
-      </div>
-      <p class="text-sm text-green-400 mb-6">Скидка {{ product.active_sale.discount_percent }}%</p>
-    {% else %}
-      <p class="text-primary text-2xl font-bold mb-6">₸{{ product.price|floatformat:0 }}</p>
-    {% endif %}
-
-    <form action="{% url 'store:add_to_cart' product.id %}" method="post" class="flex items-center gap-3">
+    <form action="{% url 'store:add_to_cart' product.id %}" method="post" class="flex gap-3 mb-6">
       {% csrf_token %}
       <input type="number" name="quantity" value="1" min="1" class="w-20 p-2 rounded bg-secondary text-gray-200">
       <button type="submit" class="bg-primary text-white px-6 py-3 rounded-xl hover:bg-teal-500 transition">
@@ -57,72 +27,117 @@
   </div>
 </div>
 
-<!-- 🗨️ ОТЗЫВЫ -->
-<div class="mt-12 border-t border-gray-700 pt-8">
-  <h2 class="text-2xl font-semibold text-primary mb-6">Отзывы</h2>
+<!-- Модальное окно для увеличения фото -->
+<div id="image-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50">
+  <span id="close-modal" class="absolute top-5 right-5 text-white text-3xl cursor-pointer">&times;</span>
+  <img id="modal-img" src="#" class="max-w-[90%] max-h-[90%] rounded-lg shadow-lg">
+</div>
 
-  {% if user.is_authenticated %}
-    <form action="{% url 'store:add_review' product.id %}" method="post" class="space-y-4 mb-10">
-      {% csrf_token %}
-      <div>
-        <label class="block text-gray-300 mb-2 font-medium">Оценка:</label>
-        <div class="flex flex-row-reverse justify-end gap-1">
-          {% for i in "54321" %}
-            <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}" class="hidden peer" />
-            <label for="star{{ i }}" 
-                   class="text-3xl cursor-pointer text-gray-500 peer-checked:text-yellow-400 hover:text-yellow-400 transition">
-              ★
-            </label>
+<!-- Отзывы -->
+<h2 class="text-2xl font-semibold text-primary mt-12 mb-4">Отзывы</h2>
+
+{% if user.is_authenticated %}
+<form action="{% url 'store:add_review' product.id %}" method="post" enctype="multipart/form-data" class="space-y-4 mb-6">
+  {% csrf_token %}
+
+  <!-- Рейтинг -->
+  <div class="flex gap-1 flex-row-reverse justify-end">
+    {% for i in "54321" %}
+      <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}" class="hidden peer" />
+      <label for="star{{ i }}" class="text-3xl cursor-pointer text-gray-500 peer-checked:text-yellow-400 hover:text-yellow-400 transition">★</label>
+    {% endfor %}
+  </div>
+
+  <!-- Комментарий -->
+  {{ form.text }}
+
+  <!-- Фото -->
+  <div class="flex items-center gap-2">
+    <input type="file" id="review-image" name="image" class="hidden" accept="image/*">
+    <label for="review-image" class="flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg cursor-pointer hover:bg-blue-700 transition text-sm">
+      📷 Выбрать фото
+    </label>
+    <span id="review-filename" class="text-gray-300 text-sm"></span>
+  </div>
+
+  <!-- Превью изображения -->
+  <img id="review-preview" src="#" class="mt-2 w-48 h-48 object-cover rounded-lg border border-gray-700 hidden">
+
+  <!-- Кнопка отправки -->
+  <button type="submit" class="flex items-center bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white px-5 py-2 rounded-full shadow-lg transition transform hover:scale-105">
+    Отправить отзыв
+  </button>
+</form>
+{% else %}
+<p class="text-gray-400 mb-4">Авторизуйтесь, чтобы оставить отзыв.</p>
+{% endif %}
+
+<!-- Список отзывов -->
+{% if product.reviews.exists %}
+  {% for review in product.reviews.all %}
+    <div class="bg-accent/70 p-4 rounded-xl mb-3">
+      <div class="flex justify-between items-center mb-2">
+        <span class="font-semibold text-primary">{{ review.user.username }}</span>
+        <div class="flex items-center gap-1">
+          {% for i in "12345" %}
+            {% if forloop.counter <= review.rating %}
+              <span class="text-yellow-400 text-xl">★</span>
+            {% else %}
+              <span class="text-gray-600 text-xl">★</span>
+            {% endif %}
           {% endfor %}
         </div>
       </div>
+      <p class="text-gray-300">{{ review.text }}</p>
+      {% if review.image %}
+        <img src="{{ review.image.url }}" alt="Фото отзыва" class="mt-3 w-48 h-48 object-cover rounded-lg border border-gray-700">
+      {% endif %}
+      <p class="text-sm text-gray-500 mt-1">{{ review.created_at|date:"d.m.Y H:i" }}</p>
+    </div>
+  {% endfor %}
+{% else %}
+<p class="text-gray-500">Пока нет отзывов.</p>
+{% endif %}
 
-      <div>
-        <label class="block text-gray-300 mb-1">Комментарий</label>
-        {{ form.text }}
-      </div>
+<script>
+  // Превью фото отзыва
+  const input = document.getElementById('review-image');
+  const filename = document.getElementById('review-filename');
+  const preview = document.getElementById('review-preview');
 
-      <button type="submit"
-              class="bg-primary hover:bg-teal-500 text-white font-semibold px-6 py-2 rounded-xl">
-        Отправить отзыв
-      </button>
-    </form>
-  {% else %}
-    <p class="text-gray-400 mb-4">Авторизуйтесь, чтобы оставить отзыв.</p>
-  {% endif %}
+  input.addEventListener('change', () => {
+    if(input.files.length > 0){
+      const file = input.files[0];
+      filename.textContent = file.name;
+      const reader = new FileReader();
+      reader.onload = e => { preview.src = e.target.result; preview.classList.remove('hidden'); }
+      reader.readAsDataURL(file);
+    } else {
+      filename.textContent = '';
+      preview.src = '#';
+      preview.classList.add('hidden');
+    }
+  });
 
-  <!-- Список отзывов -->
-  {% if product.reviews.exists %}
-    {% for review in product.reviews.all %}
-      <div class="bg-accent/70 p-4 rounded-xl mb-3">
-        <div class="flex justify-between items-center mb-2">
-          <span class="font-semibold text-primary">{{ review.user.username }}</span>
+  // Модальное окно для увеличения фото товара
+  const productImg = document.getElementById('product-image');
+  const modal = document.getElementById('image-modal');
+  const modalImg = document.getElementById('modal-img');
+  const closeModal = document.getElementById('close-modal');
 
-          <!-- ⭐ Звёзды для каждого отзыва -->
-          <div class="flex items-center gap-1">
-            {% for i in "12345" %}
-              {% if forloop.counter <= review.rating %}
-                <span class="text-yellow-400 text-xl">★</span>
-              {% else %}
-                <span class="text-gray-600 text-xl">★</span>
-              {% endif %}
-            {% endfor %}
-          </div>
-        </div>
-        <p class="text-gray-300">{{ review.text }}</p>
-        <p class="text-sm text-gray-500 mt-1">{{ review.created_at|date:"d.m.Y H:i" }}</p>
-      </div>
-    {% endfor %}
-  {% else %}
-    <p class="text-gray-500">Пока нет отзывов.</p>
-  {% endif %}
-</div>
+  productImg.addEventListener('click', () => {
+      modalImg.src = productImg.src;
+      modal.classList.remove('hidden');
+  });
 
-<style>
-  input[type="radio"] ~ label:hover,
-  input[type="radio"] ~ label:hover ~ label {
-    color: #facc15 !important;
-  }
-</style>
+  closeModal.addEventListener('click', () => {
+      modal.classList.add('hidden');
+  });
 
+  modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+          modal.classList.add('hidden');
+      }
+  });
+</script>
 {% endblock %}
