@@ -1,13 +1,30 @@
 {% extends 'base.html' %}
 {% block title %}О магазине{% endblock %}
-{% block content %}
-<h1 class="text-3xl font-bold mb-6 text-primary">О нашем магазине</h1>
 
-<p class="text-gray-400 leading-relaxed max-w-3xl">
-Мы — <span class="text-primary font-semibold">ShopZone</span>, современный онлайн-магазин, где технологии, удобство и качество встречаются в одном месте.
-Наша цель — сделать покупки простыми, приятными и доступными каждому.
-<br><br>
-Мы тщательно отбираем товары, сотрудничаем с проверенными поставщиками и постоянно обновляем ассортимент.
-ShopZone — это не просто магазин, а команда, которая заботится о каждом клиенте.
-</p>
+{% block content %}
+<div class="flex flex-col min-h-screen">
+
+  <!-- Основной контент -->
+  <main class="flex-grow container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-6 text-primary">О нашем магазине</h1>
+
+    <p class="text-gray-400 leading-relaxed max-w-3xl">
+      Мы — <span class="text-primary font-semibold">ShopZone</span>, современный онлайн-магазин, где технологии, удобство и качество встречаются в одном месте.
+      Наша цель — сделать покупки простыми, приятными и доступными каждому.
+      <br><br>
+      Мы тщательно отбираем товары, сотрудничаем с проверенными поставщиками и постоянно обновляем ассортимент.
+      ShopZone — это не просто магазин, а команда, которая заботится о каждом клиенте.
+    </p>
+  </main>
+
+  <!-- Футер -->
+  <footer class="bg-gray-800 text-white text-center py-6">
+    <div class="social-links flex justify-center space-x-6">
+      <a href="https://facebook.com/ShopZone" target="_blank" class="hover:text-blue-600 transition-colors">Facebook</a>
+      <a href="https://twitter.com/ShopZone" target="_blank" class="hover:text-blue-400 transition-colors">Twitter</a>
+      <a href="https://instagram.com/ShopZone" target="_blank" class="hover:text-pink-500 transition-colors">Instagram</a>
+    </div>
+  </footer>
+
+</div>
 {% endblock %}
